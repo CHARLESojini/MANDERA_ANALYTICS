@@ -11,7 +11,7 @@ def generate(batch_id: str) -> list[dict]:
     products = []
 
     for _ in range(count):
-        category = random.choice(list(PRODUCT_CATEGORIES.KEYS()))
+        category = random.choice(list(PRODUCT_CATEGORIES.keys()))
         products.append({
             "product_id": f"PROD{random.randint(1000, 9999)}",
             "product_name": random.choice(PRODUCT_CATEGORIES[category]),
