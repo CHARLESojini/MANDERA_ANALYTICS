@@ -1,0 +1,32 @@
+name: Generate synthetic data
+
+on:
+  schedule:
+    - cron: '0 7 * * *'    # 8:00 AM WAT daily (WAT = UTC+1)
+    - cron: '0 15 * * *'   # 4:00 PM WAT daily
+  workflow_dispatch:         # Manual trigger from GitHub Actions UI
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run data generator
+        run: python -m Data_Generator.generator
+        env:
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
+
+      - name: Confirm completion
+        run: echo "Data generation complete for batch run."
