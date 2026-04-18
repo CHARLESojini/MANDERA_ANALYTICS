@@ -8,7 +8,7 @@ from faker import Faker
 
 from Config.settings import CUSTOMERS_MIN, CUSTOMERS_MAX
 
-fake = faker()
+fake = Faker()
 
 def generate(batch_id: str) -> list[dict]:
     """generate 15-25 customers documents."""
