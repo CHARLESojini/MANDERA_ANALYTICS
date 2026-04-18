@@ -4,7 +4,7 @@ import random
 
 from datetime import datetime, timezone
 
-from faker import faker
+from faker import Faker
 
 from Config.settings import CUSTOMERS_MIN, CUSTOMERS_MAX
 
