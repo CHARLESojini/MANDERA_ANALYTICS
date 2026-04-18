@@ -59,3 +59,24 @@ PRODUCT_CATEGORIES = {
         "Poetry Collection", "Business Strategy", "Children's Book",
     ],
 }
+
+def generate_batch_id(db) -> str:
+    """Generate a sequential integer batch ID by incrementing a counter in MongoDB.
+ 
+    On the first run this creates a 'batch_counter' document in MongoDB
+    and sets the sequence to 1. Every subsequent run increments it by 1,
+    producing IDs like 1, 2, 3 ... with no collisions across runs.
+ 
+    Args:
+        db: Active pymongo database instance.
+ 
+    Returns:
+        A string representation of the current batch sequence number e.g. '1', '2'.
+    """
+    result = db["batch_counter"].find_one_and_update(
+        {"_id": "batch_id"},
+        {"$inc": {"seq": 1}},
+        upsert=True,
+        return_document=True,
+    )
+    return str(result["seq"])
