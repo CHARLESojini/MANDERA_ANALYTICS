@@ -63,6 +63,25 @@ x-airflow-common: &airflow-common
       condition: service_healthy
 
 services:
+  # ----------------------------------------------------------
+  # DB Init — creates airflow_db on every startup if it doesn't exist
+  # Runs and exits — depends on postgres being healthy
+  # ----------------------------------------------------------
+  db-init:
+    image: postgres:15
+    container_name: mandera_db_init
+    networks:
+      - mandera_network
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    command: >
+      bash -c "psql -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c
+      \"SELECT 'CREATE DATABASE airflow_db' WHERE NOT EXISTS
+      (SELECT FROM pg_database WHERE datname = 'airflow_db')\\gexec\""
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
 
   # PostgreSQL — Raw + staging warehouse + Airflow metadata
   # Access from host:             localhost:5433
