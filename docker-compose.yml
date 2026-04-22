@@ -1,10 +1,16 @@
 # MANDERA_ANALYTICS — Local Development Stack
+
 # Services:
-#   postgres  : Raw + staging warehouse layers
-#   minio     : S3-compatible object storage (raw archive)
-#   pgadmin   : Web UI to inspect PostgreSQL
+#   postgres          : Raw + staging warehouse layers + Airflow metadata
+#   minio             : S3-compatible object storage (raw archive)
+#   pgadmin           : Web UI to inspect PostgreSQL
+#   jupyter           : Jupyter Lab + PySpark + Pandas for transformation
+#   airflow-init      : One-time Airflow database setup
+#   airflow-webserver : Airflow UI at localhost:8080
+#   airflow-scheduler : Airflow task scheduler
 #
 # Usage:
+#   ./generate_pgpass.sh        # generate servers.json and pgpass from .env
 #   docker compose up -d        # start all services
 #   docker compose down         # stop all services
 #   docker compose down -v      # stop and delete volumes
@@ -12,19 +18,56 @@
 # All credentials are loaded from .env — never hardcoded here
 
 
-
-# Named volumes — data persists across container restarts
-
 volumes:
   postgres_data:
   minio_data:
   pgadmin_data:
+  airflow_logs:
+
+networks:
+  mandera_network:
+    driver: bridge
+
+# Reusable Airflow environment block
+# All Airflow services inherit from this using <<: *airflow-common
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.8.0
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/airflow_db
+    AIRFLOW__CORE__FERNET_KEY: ''
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
+    MONGO_URL: ${MONGO_URL}
+    MONGO_DB_NAME: ${MONGO_DB_NAME}
+    POSTGRES_HOST: postgres
+    POSTGRES_PORT: 5432
+    POSTGRES_DB: ${POSTGRES_DB}
+    POSTGRES_USER: ${POSTGRES_USER}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    MINIO_ENDPOINT: minio:9000
+    MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+    MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+    MINIO_BUCKET: ${MINIO_BUCKET}
+  volumes:
+    - ./mandera_pipeline/dags:/opt/airflow/dags
+    - .:/opt/airflow/project
+    - airflow_logs:/opt/airflow/logs
+    # Mount requirements file so Airflow installs pipeline dependencies
+    - ./airflow-requirements.txt:/opt/airflow/airflow-requirements.txt
+  networks:
+    - mandera_network
+  depends_on:
+    postgres:
+      condition: service_healthy
 
 services:
 
-  # PostgreSQL — Raw and staging warehouse layers
-  # Access: localhost:5432
-  
+  # PostgreSQL — Raw + staging warehouse + Airflow metadata
+  # Access from host:             localhost:5433
+  # Access from other containers: postgres:5432
+
   postgres:
     image: postgres:15
     container_name: mandera_postgres
@@ -39,17 +82,18 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  
+
   # MinIO — S3-compatible object storage for raw JSON archive
-  # API:     localhost:9000
-  # Console: localhost:9001
-  
+  # Access from host:             localhost:9000 / localhost:9001
+  # Access from other containers: minio:9000
+
   minio:
     image: minio/minio
     container_name: mandera_minio
@@ -71,11 +115,10 @@ services:
       timeout: 5s
       retries: 5
 
-  
+
   # pgAdmin — Web UI to inspect and query PostgreSQL
-  # Access: http://localhost:5050
-  # Login:  uses PGADMIN_EMAIL and PGADMIN_PASSWORD from .env
-  
+  # Access from host: http://localhost:5050
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: mandera_pgadmin
@@ -96,12 +139,10 @@ services:
       - ./servers.json:/pgadmin4/servers.json
       - ./pgpass:/pgpass
 
+
   # Jupyter Lab + PySpark + Pandas
   # Access from host: http://localhost:8888
-  # Token: run 'docker logs mandera_jupyter' to get token
-  #
-  # Talks to postgres and minio directly over mandera_network
-  # using service names as hostnames — no localhost needed
+  # Fixed token: set JUPYTER_TOKEN in .env
 
   jupyter:
     image: jupyter/pyspark-notebook
@@ -113,33 +154,73 @@ services:
       - "8888:8888"
     environment:
       JUPYTER_ENABLE_LAB: "yes"
- 
-      # Inside mandera_network containers use service names as hostnames
-      # postgres resolves to the postgres container's IP automatically
+      JUPYTER_TOKEN: ${JUPYTER_TOKEN}
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
- 
       MONGO_URL: ${MONGO_URL}
       MONGO_DB_NAME: ${MONGO_DB_NAME}
- 
-      # minio resolves to the minio container's IP automatically
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       MINIO_BUCKET: ${MINIO_BUCKET}
     volumes:
-      # Notebooks persist to local folder — visible in VS Code
       - ./mandera_pipeline/notebooks:/home/jovyan/work
     depends_on:
       postgres:
         condition: service_healthy
 
-# Custom bridge network — all services communicate here
-# Bridge network isolates containers from other Docker networks
-# on your machine while letting them talk to each other freely
-networks:
-  mandera_network:
-    driver: bridge
+
+  # Airflow Init — runs once to create airflow_db and admin user
+  # Installs pipeline dependencies before initialising Airflow
+  # Exits automatically after setup completes
+
+  airflow-init:
+    <<: *airflow-common
+    container_name: mandera_airflow_init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        pip install -r /opt/airflow/airflow-requirements.txt &&
+        airflow db init &&
+        airflow users create \
+          --username ${AIRFLOW_USER} \
+          --password ${AIRFLOW_PASSWORD} \
+          --firstname Mandera \
+          --lastname Admin \
+          --role Admin \
+          --email ${AIRFLOW_EMAIL}
+    restart: on-failure
+
+
+  # Airflow Webserver — UI to monitor and trigger DAGs
+  # Access from host: http://localhost:8080
+  # Login: AIRFLOW_USER / AIRFLOW_PASSWORD from .env
+  # Installs pipeline dependencies on startup
+
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: mandera_airflow_webserver
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    command: bash -c "pip install -r /opt/airflow/airflow-requirements.txt && airflow webserver"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+
+  # Airflow Scheduler — monitors DAGs and triggers task runs
+  # Runs in background — no UI
+  # Installs pipeline dependencies on startup
+
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: mandera_airflow_scheduler
+    restart: unless-stopped
+    command: bash -c "pip install -r /opt/airflow/airflow-requirements.txt && airflow scheduler"
