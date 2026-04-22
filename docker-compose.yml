@@ -29,6 +29,8 @@ services:
     image: postgres:15
     container_name: mandera_postgres
     restart: unless-stopped
+    networks:
+      - mandera_network
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -52,6 +54,8 @@ services:
     image: minio/minio
     container_name: mandera_minio
     restart: unless-stopped
+    networks:
+      - mandera_network
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
@@ -76,6 +80,8 @@ services:
     image: dpage/pgadmin4
     container_name: mandera_pgadmin
     restart: unless-stopped
+    networks:
+      - mandera_network
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
@@ -90,3 +96,50 @@ services:
       - ./servers.json:/pgadmin4/servers.json
       - ./pgpass:/pgpass
 
+  # Jupyter Lab + PySpark + Pandas
+  # Access from host: http://localhost:8888
+  # Token: run 'docker logs mandera_jupyter' to get token
+  #
+  # Talks to postgres and minio directly over mandera_network
+  # using service names as hostnames — no localhost needed
+
+  jupyter:
+    image: jupyter/pyspark-notebook
+    container_name: mandera_jupyter
+    restart: unless-stopped
+    networks:
+      - mandera_network
+    ports:
+      - "8888:8888"
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+ 
+      # Inside mandera_network containers use service names as hostnames
+      # postgres resolves to the postgres container's IP automatically
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+ 
+      MONGO_URL: ${MONGO_URL}
+      MONGO_DB_NAME: ${MONGO_DB_NAME}
+ 
+      # minio resolves to the minio container's IP automatically
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+    volumes:
+      # Notebooks persist to local folder — visible in VS Code
+      - ./mandera_pipeline/notebooks:/home/jovyan/work
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+# Custom bridge network — all services communicate here
+# Bridge network isolates containers from other Docker networks
+# on your machine while letting them talk to each other freely
+networks:
+  mandera_network:
+    driver: bridge

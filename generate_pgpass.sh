@@ -8,7 +8,7 @@ cat > servers.json << SERVERS
     "1": {
       "Name": "Mandera Postgres",
       "Group": "Servers",
-      "Host": "mandera_postgres",
+      "Host": "postgres",
       "Port": 5432,
       "MaintenanceDB": "${POSTGRES_DB}",
       "Username": "${POSTGRES_USER}",
@@ -19,7 +19,7 @@ cat > servers.json << SERVERS
 }
 SERVERS
 
-echo "mandera_postgres:5432:${POSTGRES_DB}:${POSTGRES_USER}:${POSTGRES_PASSWORD}" > pgpass
+echo "postgres:5432:${POSTGRES_DB}:${POSTGRES_USER}:${POSTGRES_PASSWORD}" > pgpass
 chmod 600 pgpass
 
 echo "servers.json and pgpass generated from .env"
