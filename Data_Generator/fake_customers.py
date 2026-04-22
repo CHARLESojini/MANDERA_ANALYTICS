@@ -23,7 +23,7 @@ def generate(batch_id: str) -> list[dict]:
             "phone": fake.phone_number(),
             "city": fake.city(),
             "batch_id": batch_id,
-            "creatred_at": datetime.now(timezone. utc),
+            "created_at": datetime.now(timezone. utc),
         })
 
     return customers 
