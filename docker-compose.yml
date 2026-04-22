@@ -1,0 +1,92 @@
+# MANDERA_ANALYTICS — Local Development Stack
+# Services:
+#   postgres  : Raw + staging warehouse layers
+#   minio     : S3-compatible object storage (raw archive)
+#   pgadmin   : Web UI to inspect PostgreSQL
+#
+# Usage:
+#   docker compose up -d        # start all services
+#   docker compose down         # stop all services
+#   docker compose down -v      # stop and delete volumes
+#
+# All credentials are loaded from .env — never hardcoded here
+
+
+
+# Named volumes — data persists across container restarts
+
+volumes:
+  postgres_data:
+  minio_data:
+  pgadmin_data:
+
+services:
+
+  # PostgreSQL — Raw and staging warehouse layers
+  # Access: localhost:5432
+  
+  postgres:
+    image: postgres:15
+    container_name: mandera_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  
+  # MinIO — S3-compatible object storage for raw JSON archive
+  # API:     localhost:9000
+  # Console: localhost:9001
+  
+  minio:
+    image: minio/minio
+    container_name: mandera_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  
+  # pgAdmin — Web UI to inspect and query PostgreSQL
+  # Access: http://localhost:5050
+  # Login:  uses PGADMIN_EMAIL and PGADMIN_PASSWORD from .env
+  
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: mandera_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./servers.json:/pgadmin4/servers.json
+      - ./pgpass:/pgpass
+
