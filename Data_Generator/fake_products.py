@@ -17,7 +17,7 @@ def generate(batch_id: str) -> list[dict]:
             "product_name": random.choice(PRODUCT_CATEGORIES[category]),
             "category": category,
             "price": round(random.uniform(50, 15000), 2),
-            "batch-id": batch_id,
+            "batch_id": batch_id,
             "created_at": datetime.now(timezone.utc),
         })
     return products
