@@ -15,6 +15,7 @@ An end-to-end batch data pipeline that generates synthetic e-commerce data, arch
 - [Running the Project](#running-the-project)
 - [Running the Data Generator](#running-the-data-generator)
 - [DAG Task Dependency Graph](#dag-task-dependency-graph)
+- [Pipeline in Action](#pipeline-in-action)
 - [Environment Variables](#environment-variables)
 - [Service URLs](#service-urls)
 - [Contributing](#contributing)
@@ -347,6 +348,54 @@ You can also trigger it manually from the **Actions** tab on GitHub with an opti
 - Catchup: disabled
 - Max active runs: 1 (prevents overlapping pipeline runs)
 - Retries: 2 attempts per task, 5-minute delay between retries
+
+**Airflow graph view** — parallel per-entity transforms with all tasks succeeding:
+
+![Airflow DAG graph](docs/images/airflow-dag-graph.png)
+
+---
+
+## Pipeline in Action
+
+Screenshots of the live system across every layer of the pipeline.
+
+### Data Generation — GitHub Actions
+
+The workflow runs automatically twice a day and inserts a fresh batch into MongoDB Atlas. Each run prints a summary of records inserted.
+
+![GitHub Actions workflow runs](docs/images/github-actions-workflow-runs.png)
+
+![GitHub Actions run detail — batch summary](docs/images/github-actions-run-detail.png)
+
+### Source — MongoDB Atlas
+
+Raw documents land in the `mandera_db` database across three collections. Every record carries a `batch_id` for lineage tracking.
+
+![MongoDB Atlas — customers collection](docs/images/mongodb-customers-collection.png)
+
+### Orchestration — Apache Airflow
+
+The DAG runs summary shows all pipeline runs, their duration, and schedule status at a glance.
+
+![Airflow DAG runs summary](docs/images/airflow-runs-summary.png)
+
+### Object Storage — MinIO
+
+Raw MongoDB documents are archived as dated JSON files in the `mandera-raw` bucket before any transformation occurs.
+
+![MinIO — mandera-raw bucket](docs/images/minio-raw-bucket.png)
+
+### Relational Database — pgAdmin
+
+After extraction, raw records are available in PostgreSQL's `raw` schema and ready for the transform step.
+
+![pgAdmin — raw.customers table](docs/images/pgadmin-customers-table.png)
+
+### Data Quality — Jupyter Notebook
+
+The exploration notebook profiles the raw schema, documents known data quality issues, and forms the basis for the transform rules applied in staging.
+
+![Jupyter — data quality summary](docs/images/jupyter-data-quality-summary.png)
 
 ---
 
