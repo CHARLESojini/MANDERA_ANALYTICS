@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel compressed="false" dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1600" math="0" shadow="1">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- TITLE                                                           -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <mxCell id="2" value="MANDERA_ANALYTICS — End-to-End Data Pipeline Architecture"
+      style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;
+             whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#1a1a2e;"
+      vertex="1" parent="1">
+      <mxGeometry x="20" y="10" width="2160" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- LAYER 1 : CI/CD & Source Control                               -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <mxCell id="10" value="Layer 1 — CI/CD &amp; Source Control"
+      style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;
+             fontStyle=1;fontSize=13;fontColor=#1a1a2e;align=left;spacingLeft=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="20" y="70" width="2160" height="175" as="geometry" />
+    </mxCell>
+
+    <!-- GitHub -->
+    <mxCell id="20" value="GitHub"
+      style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#dae8fc;
+             verticalAlign=top;align=center;strokeColor=none;fillColor=#dae8fc;
+             image=https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg;
+             fontSize=11;fontStyle=1;"
+      vertex="1" parent="10">
+      <mxGeometry x="120" y="38" width="90" height="90" as="geometry" />
+    </mxCell>
+
+    <!-- GitHub — Source Control label -->
+    <mxCell id="21" value="Source Control&#xa;(main branch)"
+      style="text;html=1;strokeColor=none;fillColor=none;align=center;
+             verticalAlign=top;fontSize=10;fontColor=#23527c;"
+      vertex="1" parent="10">
+      <mxGeometry x="80" y="130" width="170" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- GitHub Actions -->
+    <mxCell id="22" value="&lt;b&gt;GitHub Actions&lt;/b&gt;&#xa;CI/CD — Data Generation Trigger&#xa;&#xa;Schedule: 07:00 UTC &amp; 15:00 UTC daily&#xa;Runs: python -m Data_Generator.generator&#xa;Manual trigger: workflow_dispatch"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bdd7f5;strokeColor=#6c8ebf;
+             fontSize=11;align=center;verticalAlign=middle;"
+      vertex="1" parent="10">
+      <mxGeometry x="350" y="38" width="320" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- GitHub Actions icon badge -->
+    <mxCell id="23" value="⚡"
+      style="text;html=1;strokeColor=none;fillColor=none;align=center;
+             verticalAlign=middle;fontSize=28;"
+      vertex="1" parent="10">
+      <mxGeometry x="290" y="70" width="50" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- LAYER 2 : Data Generation                                       -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <mxCell id="11" value="Layer 2 — Data Generation"
+      style="swimlane;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;
+             fontStyle=1;fontSize=13;fontColor=#1a1a2e;align=left;spacingLeft=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="20" y="255" width="2160" height="145" as="geometry" />
+    </mxCell>
+
+    <!-- Python logo -->
+    <mxCell id="30" value="Python 3.9+"
+      style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#fff2cc;
+             verticalAlign=top;align=center;strokeColor=none;fillColor=#fff2cc;
+             image=https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg;
+             fontSize=11;fontStyle=1;"
+      vertex="1" parent="11">
+      <mxGeometry x="140" y="32" width="70" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- Faker / Data Generator box -->
+    <mxCell id="31" value="&lt;b&gt;Python + Faker — Data Generator&lt;/b&gt;&#xa;&#xa;fake_customers.py → 15–25 customer records&#xa;fake_products.py  → 5–10 product records&#xa;fake_orders.py    → 3,000–6,500 order records&#xa;&#xa;Tags every record with batch_id + created_at"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffeea0;strokeColor=#d6b656;
+             fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;"
+      vertex="1" parent="11">
+      <mxGeometry x="260" y="28" width="520" height="100" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- LAYER 3 : Raw Storage                                           -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <mxCell id="12" value="Layer 3 — Raw Storage"
+      style="swimlane;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;
+             fontStyle=1;fontSize=13;fontColor=#1a1a2e;align=left;spacingLeft=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="20" y="410" width="2160" height="200" as="geometry" />
+    </mxCell>
+
+    <!-- PostgreSQL logo -->
+    <mxCell id="40" value="PostgreSQL 15"
+      style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#d5e8d4;
+             verticalAlign=top;align=center;strokeColor=none;fillColor=#d5e8d4;
+             image=https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg;
+             fontSize=11;fontStyle=1;"
+      vertex="1" parent="12">
+      <mxGeometry x="100" y="35" width="80" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- PostgreSQL Raw Schema box -->
+    <mxCell id="41" value="&lt;b&gt;PostgreSQL — raw schema&lt;/b&gt;&#xa;&#xa;raw.customers&#xa;raw.orders&#xa;raw.products&#xa;&#xa;No transformation; bulk-inserted"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b5d6b2;strokeColor=#82b366;
+             fontSize=11;align=center;verticalAlign=middle;"
+      vertex="1" parent="12">
+      <mxGeometry x="220" y="32" width="220" height="145" as="geometry" />
+    </mxCell>
+
+    <!-- MinIO logo -->
+    <mxCell id="42" value="MinIO"
+      style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#d5e8d4;
+             verticalAlign=top;align=center;strokeColor=none;fillColor=#d5e8d4;
+             image=https://avatars.githubusercontent.com/u/695951?v=4;
+             fontSize=11;fontStyle=1;"
+      vertex="1" parent="12">
+      <mxGeometry x="560" y="35" width="80" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- MinIO bucket box -->
+    <mxCell id="43" value="&lt;b&gt;MinIO — mandera-raw bucket&lt;/b&gt;&#xa;&#xa;customers/YYYY-MM-DD/batch_N.json&#xa;products/YYYY-MM-DD/batch_N.json&#xa;orders/YYYY-MM-DD/batch_N.json&#xa;&#xa;Durable raw JSON archive"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b5d6b2;strokeColor=#82b366;
+             fontSize=11;align=center;verticalAlign=middle;"
+      vertex="1" parent="12">
+      <mxGeometry x="680" y="32" width="260" height="145" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- LAYER 4 : Orchestration — Apache Airflow                       -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <mxCell id="13" value="Layer 4 — Orchestration — Apache Airflow DAG"
+      style="swimlane;startSize=30;fillColor=#e1d5e7;strokeColor=#9673a6;
+             fontStyle=1;fontSize=13;fontColor=#1a1a2e;align=left;spacingLeft=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="20" y="620" width="2160" height="330" as="geometry" />
+    </mxCell>
+
+    <!-- Airflow logo -->
+    <mxCell id="50" value="Apache&#xa;Airflow"
+      style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#e1d5e7;
+             verticalAlign=top;align=center;strokeColor=none;fillColor=#e1d5e7;
+             image=https://upload.wikimedia.org/wikipedia/commons/d/de/AirflowLogo.png;
+             fontSize=11;fontStyle=1;"
+      vertex="1" parent="13">
+      <mxGeometry x="30" y="40" width="120" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- Airflow DAG metadata -->
+    <mxCell id="51" value="DAG: mandera_analytics_pipeline&#xa;Schedule: 30 7,15 * * *&#xa;LocalExecutor | max_active_runs=1&#xa;Retries: 2 × 5 min delay"
+      style="text;html=1;strokeColor=none;fillColor=none;align=left;
+             verticalAlign=top;fontSize=10;fontColor=#5b2c8d;"
+      vertex="1" parent="13">
+      <mxGeometry x="25" y="125" width="185" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- DAG inner container -->
+    <mxCell id="52" value="DAG Task Graph"
+      style="swimlane;startSize=22;fillColor=#f3ecfc;strokeColor=#9673a6;
+             fontStyle=2;fontSize=10;fontColor=#5b2c8d;"
+      vertex="1" parent="13">
+      <mxGeometry x="225" y="35" width="1880" height="278" as="geometry" />
+    </mxCell>
+
+    <!-- Task: extract_to_minio -->
+    <mxCell id="60" value="&lt;b&gt;extract_to_minio&lt;/b&gt;&#xa;PostgreSQL raw → MinIO&#xa;Uploads dated JSON files"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9b3f0;strokeColor=#9673a6;
+             fontSize=10;align=center;verticalAlign=middle;"
+      vertex="1" parent="52">
+      <mxGeometry x="30" y="40" width="200" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- Task: extract_to_postgres -->
+    <mxCell id="61" value="&lt;b&gt;extract_to_postgres&lt;/b&gt;&#xa;Reads raw PostgreSQL schema&#xa;Prepares data for transforms"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9b3f0;strokeColor=#9673a6;
+             fontSize=10;align=center;verticalAlign=middle;"
+      vertex="1" parent="52">
+      <mxGeometry x="30" y="170" width="200" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- Task: transform_customers -->
+    <mxCell id="62" value="&lt;b&gt;transform_customers&lt;/b&gt;&#xa;Validate + clean customers&#xa;Load staging.customers"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c39bd3;strokeColor=#9673a6;
+             fontSize=10;align=center;verticalAlign=middle;"
+      vertex="1" parent="52">
+      <mxGeometry x="360" y="40" width="200" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- Task: transform_products -->
+    <mxCell id="63" value="&lt;b&gt;transform_products&lt;/b&gt;&#xa;Validate + clean products&#xa;Load staging.products"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c39bd3;strokeColor=#9673a6;
+             fontSize=10;align=center;verticalAlign=middle;"
+      vertex="1" parent="52">
+      <mxGeometry x="360" y="170" width="200" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- PARALLEL label -->
+    <mxCell id="64" value="⟨ PARALLEL ⟩"
+      style="text;html=1;strokeColor=none;fillColor=none;align=center;
+             verticalAlign=middle;fontSize=11;fontStyle=3;fontColor=#9673a6;"
+      vertex="1" parent="52">
+      <mxGeometry x="360" y="126" width="200" height="36" as="geometry" />
+    </mxCell>
+
+    <!-- Task: transform_orders -->
+    <mxCell id="65" value="&lt;b&gt;transform_orders&lt;/b&gt;&#xa;Waits: customers + products done&#xa;FK constraints enforced&#xa;Load staging.orders"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9b59b6;strokeColor=#7d3c98;
+             fontSize=10;align=center;verticalAlign=middle;fontColor=#ffffff;"
+      vertex="1" parent="52">
+      <mxGeometry x="700" y="105" width="200" height="90" as="geometry" />
+    </mxCell>
+
+    <!-- Task: truncate_raw -->
+    <mxCell id="66" value="&lt;b&gt;truncate_raw&lt;/b&gt;&#xa;Clears raw.* tables&#xa;Raw data safe in MinIO"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8daef;strokeColor=#9673a6;
+             fontSize=10;align=center;verticalAlign=middle;"
+      vertex="1" parent="52">
+      <mxGeometry x="1060" y="115" width="200" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- DAG intra-edges (parent = 52) -->
+    <mxCell id="300" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+             jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;
+             entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#9673a6;"
+      edge="1" source="60" target="62" parent="52">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <mxCell id="301" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+             jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;
+             entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#9673a6;"
+      edge="1" source="61" target="62" parent="52">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <mxCell id="302" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+             jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;
+             entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#9673a6;"
+      edge="1" source="60" target="63" parent="52">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <mxCell id="303" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+             jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;
+             entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#9673a6;"
+      edge="1" source="61" target="63" parent="52">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <mxCell id="304" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+             jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;
+             entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#7d3c98;"
+      edge="1" source="62" target="65" parent="52">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <mxCell id="305" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+             jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;
+             entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#7d3c98;"
+      edge="1" source="63" target="65" parent="52">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <mxCell id="306" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;
+             jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;
+             entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#9673a6;"
+      edge="1" source="65" target="66" parent="52">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- LAYER 5 : Transformation — Scripts + Notebooks                  -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <mxCell id="14" value="Layer 5 — Transformation — Python Scripts + PySpark + Jupyter"
+      style="swimlane;startSize=30;fillColor=#ffe6cc;strokeColor=#d79b00;
+             fontStyle=1;fontSize=13;fontColor=#1a1a2e;align=left;spacingLeft=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="20" y="960" width="2160" height="175" as="geometry" />
+    </mxCell>
+
+    <!-- Python transform scripts box -->
+    <mxCell id="70" value="&lt;b&gt;Python Transform Scripts&lt;/b&gt;&#xa;&#xa;transform_customers.py&#xa;transform_products.py&#xa;transform_orders.py&#xa;&#xa;db_utils.py (shared helpers)"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc99;strokeColor=#d79b00;
+             fontSize=11;align=center;verticalAlign=middle;"
+      vertex="1" parent="14">
+      <mxGeometry x="160" y="35" width="240" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- PySpark box -->
+    <mxCell id="71" value="&lt;b&gt;PySpark&lt;/b&gt;&#xa;&#xa;orders_transform_pyspark.ipynb&#xa;Distributed transform prototyping&#xa;JupyterLab PySpark kernel"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc99;strokeColor=#d79b00;
+             fontSize=11;align=center;verticalAlign=middle;"
+      vertex="1" parent="14">
+      <mxGeometry x="480" y="35" width="240" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- Jupyter box -->
+    <mxCell id="72" value="&lt;b&gt;JupyterLab Notebooks&lt;/b&gt;&#xa;&#xa;01_raw_exploration.ipynb&#xa;customers_transform.ipynb&#xa;products_transform.ipynb&#xa;load_staging.ipynb"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc99;strokeColor=#d79b00;
+             fontSize=11;align=center;verticalAlign=middle;"
+      vertex="1" parent="14">
+      <mxGeometry x="800" y="35" width="240" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- Jupyter logo -->
+    <mxCell id="73" value="Jupyter"
+      style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#ffe6cc;
+             verticalAlign=top;align=center;strokeColor=none;fillColor=#ffe6cc;
+             image=https://upload.wikimedia.org/wikipedia/commons/3/38/Jupyter_logo.svg;
+             fontSize=10;fontStyle=1;"
+      vertex="1" parent="14">
+      <mxGeometry x="1080" y="40" width="70" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- LAYER 6 : Serving Layer                                         -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <mxCell id="15" value="Layer 6 — Serving Layer"
+      style="swimlane;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;
+             fontStyle=1;fontSize=13;fontColor=#1a1a2e;align=left;spacingLeft=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="20" y="1145" width="2160" height="195" as="geometry" />
+    </mxCell>
+
+    <!-- PostgreSQL logo (serving) -->
+    <mxCell id="80" value="PostgreSQL 15"
+      style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#f8cecc;
+             verticalAlign=top;align=center;strokeColor=none;fillColor=#f8cecc;
+             image=https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg;
+             fontSize=11;fontStyle=1;"
+      vertex="1" parent="15">
+      <mxGeometry x="100" y="35" width="70" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- PostgreSQL Staging box -->
+    <mxCell id="81" value="&lt;b&gt;PostgreSQL — staging schema&lt;/b&gt;&#xa;&#xa;staging.customers  (PK: customer_id)&#xa;staging.products   (PK: product_id)&#xa;staging.orders     (FK → customers, products)&#xa;&#xa;Referential integrity enforced&#xa;Ready for BI / analytics / warehouse"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4b8b5;strokeColor=#b85450;
+             fontSize=11;align=center;verticalAlign=middle;"
+      vertex="1" parent="15">
+      <mxGeometry x="210" y="30" width="310" height="150" as="geometry" />
+    </mxCell>
+
+    <!-- MongoDB logo -->
+    <mxCell id="82" value="MongoDB Atlas"
+      style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#f8cecc;
+             verticalAlign=top;align=center;strokeColor=none;fillColor=#f8cecc;
+             image=https://upload.wikimedia.org/wikipedia/commons/9/93/MongoDB_Logo.svg;
+             fontSize=11;fontStyle=1;"
+      vertex="1" parent="15">
+      <mxGeometry x="640" y="40" width="140" height="60" as="geometry" />
+    </mxCell>
+
+    <!-- MongoDB Atlas box -->
+    <mxCell id="83" value="&lt;b&gt;MongoDB Atlas — Document Store&lt;/b&gt;&#xa;&#xa;mandera_db database&#xa;customers | products | orders collections&#xa;&#xa;batch_id lineage tracking&#xa;Source of truth for raw documents"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4b8b5;strokeColor=#b85450;
+             fontSize=11;align=center;verticalAlign=middle;"
+      vertex="1" parent="15">
+      <mxGeometry x="810" y="30" width="310" height="150" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- LAYER 7 : Infrastructure — Docker / Docker Compose             -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <mxCell id="16" value="Layer 7 — Infrastructure — Docker / Docker Compose"
+      style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;
+             fontStyle=1;fontSize=13;fontColor=#1a1a2e;align=left;spacingLeft=10;"
+      vertex="1" parent="1">
+      <mxGeometry x="20" y="1350" width="2160" height="190" as="geometry" />
+    </mxCell>
+
+    <!-- Docker logo -->
+    <mxCell id="90" value="Docker"
+      style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#f5f5f5;
+             verticalAlign=top;align=center;strokeColor=none;fillColor=#f5f5f5;
+             image=https://upload.wikimedia.org/wikipedia/commons/4/4e/Docker_%28container_engine%29_logo.svg;
+             fontSize=11;fontStyle=1;"
+      vertex="1" parent="16">
+      <mxGeometry x="40" y="35" width="140" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- Docker Compose label -->
+    <mxCell id="91" value="&lt;b&gt;docker-compose.yml — 8 services&lt;/b&gt;"
+      style="text;html=1;strokeColor=none;fillColor=none;align=left;
+             verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#333333;"
+      vertex="1" parent="16">
+      <mxGeometry x="210" y="35" width="300" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- Service pill: postgres -->
+    <mxCell id="92" value="postgres&#xa;(:5438 host, :5432 internal)"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e0e0;strokeColor=#666666;fontSize=10;align=center;"
+      vertex="1" parent="16">
+      <mxGeometry x="210" y="75" width="190" height="45" as="geometry" />
+    </mxCell>
+
+    <!-- Service pill: minio -->
+    <mxCell id="93" value="minio&#xa;(:9000 API, :9001 Console)"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e0e0;strokeColor=#666666;fontSize=10;align=center;"
+      vertex="1" parent="16">
+      <mxGeometry x="415" y="75" width="190" height="45" as="geometry" />
+    </mxCell>
+
+    <!-- Service pill: pgadmin -->
+    <mxCell id="94" value="pgadmin&#xa;(:5050)"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e0e0;strokeColor=#666666;fontSize=10;align=center;"
+      vertex="1" parent="16">
+      <mxGeometry x="620" y="75" width="190" height="45" as="geometry" />
+    </mxCell>
+
+    <!-- Service pill: jupyter -->
+    <mxCell id="95" value="jupyter&#xa;(:8888)"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e0e0;strokeColor=#666666;fontSize=10;align=center;"
+      vertex="1" parent="16">
+      <mxGeometry x="825" y="75" width="190" height="45" as="geometry" />
+    </mxCell>
+
+    <!-- Service pill: airflow-init -->
+    <mxCell id="96" value="airflow-init&#xa;(one-shot setup)"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e0e0;strokeColor=#666666;fontSize=10;align=center;"
+      vertex="1" parent="16">
+      <mxGeometry x="1030" y="75" width="190" height="45" as="geometry" />
+    </mxCell>
+
+    <!-- Service pill: airflow-webserver -->
+    <mxCell id="97" value="airflow-webserver&#xa;(:8080)"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e0e0;strokeColor=#666666;fontSize=10;align=center;"
+      vertex="1" parent="16">
+      <mxGeometry x="1235" y="75" width="190" height="45" as="geometry" />
+    </mxCell>
+
+    <!-- Service pill: airflow-scheduler -->
+    <mxCell id="98" value="airflow-scheduler&#xa;(background)"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e0e0;strokeColor=#666666;fontSize=10;align=center;"
+      vertex="1" parent="16">
+      <mxGeometry x="1440" y="75" width="190" height="45" as="geometry" />
+    </mxCell>
+
+    <!-- Service pill: db-init -->
+    <mxCell id="99" value="db-init&#xa;(creates airflow_db)"
+      style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e0e0;strokeColor=#666666;fontSize=10;align=center;"
+      vertex="1" parent="16">
+      <mxGeometry x="1645" y="75" width="190" height="45" as="geometry" />
+    </mxCell>
+
+    <!-- Docker Compose note -->
+    <mxCell id="100" value="All local services containerised. Volumes persist data between restarts. .env supplies all credentials."
+      style="text;html=1;strokeColor=none;fillColor=none;align=left;
+             verticalAlign=middle;fontSize=10;fontStyle=2;fontColor=#666666;"
+      vertex="1" parent="16">
+      <mxGeometry x="210" y="130" width="700" height="40" as="geometry" />
+    </mxCell>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- CROSS-LAYER EDGES                                               -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- GitHub → GitHub Actions -->
+    <mxCell id="400" value=""
+      style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;
+             exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;
+             strokeColor=#6c8ebf;strokeWidth=2;"
+      edge="1" source="20" target="22" parent="10">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- GitHub Actions → Python/Faker (triggers) -->
+    <mxCell id="401" value="triggers&#xa;(cron / manual)"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;
+             exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+             strokeColor=#d6b656;strokeWidth=2;fontSize=10;fontStyle=2;"
+      edge="1" source="22" target="31" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Python/Faker → PostgreSQL raw (inserts) -->
+    <mxCell id="402" value="inserts batch"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;
+             exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+             strokeColor=#82b366;strokeWidth=2;fontSize=10;fontStyle=2;"
+      edge="1" source="31" target="41" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- PostgreSQL raw → extract_to_minio (Airflow reads) -->
+    <mxCell id="403" value="reads raw"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;
+             exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+             strokeColor=#9673a6;strokeWidth=2;fontSize=10;fontStyle=2;"
+      edge="1" source="41" target="60" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- PostgreSQL raw → extract_to_postgres -->
+    <mxCell id="404" value="reads raw"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;
+             exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+             strokeColor=#9673a6;strokeWidth=2;fontSize=10;fontStyle=2;"
+      edge="1" source="41" target="61" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="400" y="610" />
+          <mxPoint x="550" y="610" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- extract_to_minio → MinIO bucket (uploads) -->
+    <mxCell id="405" value="uploads JSON"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;
+             exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;
+             strokeColor=#82b366;strokeWidth=2;fontSize=10;fontStyle=2;"
+      edge="1" source="60" target="43" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="440" y="700" />
+          <mxPoint x="280" y="700" />
+          <mxPoint x="280" y="609" />
+          <mxPoint x="780" y="609" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- transform_customers → PostgreSQL staging -->
+    <mxCell id="406" value="loads&#xa;staging.customers"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;
+             exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+             strokeColor=#b85450;strokeWidth=2;fontSize=10;fontStyle=2;"
+      edge="1" source="62" target="81" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- transform_products → PostgreSQL staging -->
+    <mxCell id="407" value="loads&#xa;staging.products"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;
+             exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+             strokeColor=#b85450;strokeWidth=2;fontSize=10;fontStyle=2;"
+      edge="1" source="63" target="81" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- transform_orders → PostgreSQL staging -->
+    <mxCell id="408" value="loads&#xa;staging.orders"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;
+             exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+             strokeColor=#b85450;strokeWidth=2;fontSize=10;fontStyle=2;"
+      edge="1" source="65" target="81" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Python scripts (Layer 5) ↔ transform tasks (Layer 4) — reference note -->
+    <mxCell id="409" value="implements"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;
+             exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;
+             strokeColor=#d79b00;strokeWidth=1;dashed=1;fontSize=10;fontStyle=2;"
+      edge="1" source="70" target="62" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- MongoDB Atlas serving label -->
+    <mxCell id="410" value="document&#xa;records"
+      style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;
+             exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;
+             strokeColor=#b85450;strokeWidth=2;fontSize=10;fontStyle=2;"
+      edge="1" source="81" target="83" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>

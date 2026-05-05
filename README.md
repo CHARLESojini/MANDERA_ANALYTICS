@@ -37,47 +37,9 @@ The staging schema enforces referential integrity and data quality rules, making
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    MANDERA_ANALYTICS PIPELINE                        │
-└─────────────────────────────────────────────────────────────────────┘
+![Mandera Analytics Architecture](docs/images/architecture.png)
 
-  ┌─────────────────────────────────┐
-  │   GitHub Actions (8 AM / 4 PM WAT)   │
-  │   python -m Data_Generator.generator │
-  └────────────────┬────────────────┘
-                   │ inserts batch
-                   ▼
-         ┌──────────────────┐
-         │   MongoDB Atlas   │  (customers, products, orders collections)
-         └────────┬─────────┘
-                  │ 30 min later — Airflow DAG triggers
-                  ▼
-  ┌───────────────────────────────────────────────┐
-  │              Apache Airflow DAG               │
-  │                                               │
-  │  extract_to_minio ──┐                         │
-  │                     ├──► transform_customers──┐│
-  │  extract_to_postgres┤                         ││
-  │                     └──► transform_products ──┼┤──► transform_orders ──► truncate_raw
-  │                                               ││
-  └───────────────────────────────────────────────┘│
-                                                   │
-          ┌────────────────────┬──────────────────-┘
-          ▼                    ▼
-  ┌──────────────┐    ┌──────────────────────┐
-  │    MinIO      │    │  PostgreSQL           │
-  │  (raw JSON    │    │                       │
-  │   archive)    │    │  raw.customers        │
-  │               │    │  raw.products         │
-  │ customers/    │    │  raw.orders           │
-  │ products/     │    │       │               │
-  │ orders/       │    │       ▼ (transform)   │
-  │  YYYY-MM-DD/  │    │  staging.customers    │
-  │  batch_N.json │    │  staging.products     │
-  └──────────────┘    │  staging.orders       │
-                       └──────────────────────┘
-```
+> Source: [`docs/architecture.drawio`](docs/architecture.drawio) — open in [draw.io](https://app.diagrams.net/) to edit.
 
 **Data flow in plain English:**
 
