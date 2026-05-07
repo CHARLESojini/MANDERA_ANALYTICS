@@ -39,7 +39,7 @@ The staging schema enforces referential integrity and data quality rules, making
 
 ![Mandera Analytics Architecture](docs/images/architecture.png)
 
-> Source: [`docs/architecture.drawio`](docs/architecture.drawio) — open in [draw.io](https://app.diagrams.net/) to edit.
+> 🔗 [View interactive architecture](docs/architecture.html)
 
 **Data flow in plain English:**
 

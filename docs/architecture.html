@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MANDERA ANALYTICS — Pipeline Architecture</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0D1117;
+    color: #E6EDF3;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ─────────────────────────────────────────── */
+  .header {
+    text-align: center;
+    padding: 48px 24px 32px;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    display: block;
+    width: 120px;
+    height: 3px;
+    background: linear-gradient(90deg, #2196F3, #AA00FF, #FF6D00, #FF1744);
+    margin: 20px auto 0;
+    border-radius: 2px;
+  }
+  .title {
+    font-size: 42px;
+    font-weight: 900;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #E6EDF3 30%, #8B949E 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle {
+    font-size: 15px;
+    font-weight: 400;
+    color: #8B949E;
+    margin-top: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── Legend ──────────────────────────────────────────── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 24px 40px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #161B22;
+    border: 1px solid #30363D;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── Canvas wrapper ──────────────────────────────────── */
+  .canvas {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 32px 80px;
+    position: relative;
+  }
+
+  /* ── SVG overlay for connectors ─────────────────────── */
+  .connector-svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  /* ── Layer ───────────────────────────────────────────── */
+  .layer {
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .layer-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #8B949E;
+    margin-bottom: 12px;
+    padding-left: 4px;
+  }
+  .layer-body {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .layer-divider {
+    border: none;
+    border-top: 1px solid #21262D;
+    margin: 18px 0;
+  }
+
+  /* ── Node card ───────────────────────────────────────── */
+  .node {
+    position: relative;
+    background: #161B22;
+    border: 1px solid #30363D;
+    border-radius: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    min-width: 160px;
+  }
+  .node:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    box-shadow: 0 0 20px -4px var(--accent), 0 8px 24px rgba(0,0,0,0.5);
+    z-index: 10;
+  }
+  .node::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 12px; bottom: 12px;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
+    transition: top 0.18s, bottom 0.18s;
+  }
+  .node:hover::before { top: 4px; bottom: 4px; }
+
+  .node-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #E6EDF3;
+    white-space: nowrap;
+  }
+  .node-detail {
+    font-size: 11px;
+    color: #8B949E;
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  /* pill variant */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #161B22;
+    border: 1px solid #30363D;
+    border-left: 3px solid var(--accent);
+    border-radius: 30px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: #E6EDF3;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 16px -4px var(--accent);
+    border-color: var(--accent);
+    z-index: 10;
+  }
+  .pill-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* arrow label between nodes */
+  .arrow-label {
+    font-size: 18px;
+    color: #484F58;
+    align-self: center;
+    flex-shrink: 0;
+  }
+
+  /* fork / join visual */
+  .fork-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .fork-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .fork-brace {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-self: stretch;
+    align-items: flex-end;
+    padding: 4px 0;
+  }
+  .fork-line {
+    width: 28px;
+    height: 1px;
+    background: #484F58;
+    position: relative;
+  }
+  .fork-line::after {
+    content: '';
+    position: absolute;
+    right: 0; top: -4px;
+    border: 4px solid transparent;
+    border-left: 6px solid #484F58;
+  }
+
+  /* ── Tooltip ─────────────────────────────────────────── */
+  .tooltip {
+    position: fixed;
+    background: #1C2128;
+    border: 1px solid #30363D;
+    border-radius: 10px;
+    padding: 14px 18px;
+    max-width: 300px;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.15s, transform 0.15s;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.7);
+  }
+  .tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .tooltip-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--tt-accent, #E6EDF3);
+    margin-bottom: 6px;
+  }
+  .tooltip-body {
+    font-size: 12px;
+    color: #8B949E;
+    line-height: 1.6;
+  }
+  .tooltip-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin-top: 6px;
+    color: var(--tt-accent, #8B949E);
+    font-weight: 600;
+  }
+
+  /* ── Animated connector lines ────────────────────────── */
+  .conn-path {
+    fill: none;
+    stroke: #30363D;
+    stroke-width: 1.5;
+    stroke-dasharray: 6 4;
+    transition: stroke 0.2s;
+  }
+  .conn-path.highlighted { stroke: var(--conn-color, #58A6FF); }
+
+  .conn-dot {
+    r: 3.5;
+    fill: var(--conn-color, #58A6FF);
+    opacity: 0;
+  }
+
+  /* Layer color vars */
+  .l-cicd   { --accent: #2196F3; }
+  .l-datagen { --accent: #FFB300; }
+  .l-raw    { --accent: #00C853; }
+  .l-orch   { --accent: #AA00FF; }
+  .l-trans  { --accent: #FF6D00; }
+  .l-serve  { --accent: #FF1744; }
+  .l-infra  { --accent: #546E7A; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────── -->
+<div class="header">
+  <div class="title">MANDERA ANALYTICS</div>
+  <div class="subtitle">End-to-End Data Pipeline Architecture</div>
+</div>
+
+<!-- ── Legend ─────────────────────────────────────────── -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#2196F3"></div>CI/CD</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#FFB300"></div>Data Generation</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#00C853"></div>Raw Storage</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#AA00FF"></div>Orchestration</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#FF6D00"></div>Transformation</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#FF1744"></div>Serving</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#546E7A"></div>Infrastructure</div>
+</div>
+
+<!-- ── Diagram canvas ─────────────────────────────────── -->
+<div class="canvas" id="canvas">
+  <svg class="connector-svg" id="connSvg"></svg>
+
+  <!-- LAYER 1 — CI/CD -->
+  <div class="layer">
+    <div class="layer-label">Layer 1 — CI/CD</div>
+    <div class="layer-body">
+      <div class="node l-cicd" id="n-github"
+        data-title="GitHub"
+        data-tip="Source control | Branch: main | Version control for all pipeline code"
+        data-tag="Source Control">
+        <div class="node-name">GitHub</div>
+        <div class="node-detail">Branch: main</div>
+      </div>
+      <div class="arrow-label" id="arr-cicd">→</div>
+      <div class="node l-cicd" id="n-gha"
+        data-title="GitHub Actions"
+        data-tip="CI/CD trigger | Schedules: 07:00 &amp; 15:00 UTC daily | Runs: python -m Data_Generator.generator"
+        data-tag="2 schedules/day">
+        <div class="node-name">GitHub Actions</div>
+        <div class="node-detail">07:00 &amp; 15:00 UTC daily<br>workflow_dispatch enabled</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="layer-divider">
+
+  <!-- LAYER 2 — DATA GENERATION -->
+  <div class="layer">
+    <div class="layer-label">Layer 2 — Data Generation</div>
+    <div class="layer-body">
+      <div class="node l-datagen" id="n-faker"
+        data-title="Python 3.9 + Faker"
+        data-tip="Data generation | Synthetic retail data | Referential integrity via batch_id | fake_customers.py (15–25/batch) | fake_orders.py (3,000–6,500/batch) | fake_products.py (5–10/batch)"
+        data-tag="Faker · batch_id keyed">
+        <div class="node-name">Python 3.9 + Faker</div>
+        <div class="node-detail">fake_customers.py &nbsp;15–25/batch<br>fake_orders.py &nbsp;&nbsp;&nbsp;&nbsp;3,000–6,500/batch<br>fake_products.py &nbsp;&nbsp;5–10/batch</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="layer-divider">
+
+  <!-- LAYER 3 — RAW STORAGE -->
+  <div class="layer">
+    <div class="layer-label">Layer 3 — Raw Storage</div>
+    <div class="layer-body">
+      <div class="node l-raw" id="n-mongo"
+        data-title="MongoDB Atlas"
+        data-tip="Source of record | mandera_db | customers, orders, products collections | Document store | Logging + change tracking"
+        data-tag="mandera_db">
+        <div class="node-name">MongoDB Atlas</div>
+        <div class="node-detail">mandera_db<br>customers · orders · products</div>
+      </div>
+      <div class="arrow-label">→</div>
+      <div class="node l-raw" id="n-pgraw"
+        data-title="PostgreSQL 15 — raw schema"
+        data-tip="Raw ingestion layer | psycopg2 batch insert | 3 tables: raw.customers, raw.orders, raw.products | No transformations applied"
+        data-tag="psycopg2 · batch insert">
+        <div class="node-name">PostgreSQL 15</div>
+        <div class="node-detail">raw.customers<br>raw.orders<br>raw.products</div>
+      </div>
+      <div class="arrow-label">+</div>
+      <div class="node l-raw" id="n-minio"
+        data-title="MinIO — mandera-raw"
+        data-tip="S3-compatible object storage | mandera-raw bucket | JSON files partitioned by date/batch | customers/ · orders/ · products/ | boto3 JSON upload"
+        data-tag="boto3 · YYYY-MM-DD/batch_N.json">
+        <div class="node-name">MinIO</div>
+        <div class="node-detail">mandera-raw bucket<br>customers/ · orders/ · products/<br>YYYY-MM-DD/batch_N.json</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="layer-divider">
+
+  <!-- LAYER 4 — ORCHESTRATION -->
+  <div class="layer">
+    <div class="layer-label">Layer 4 — Orchestration · Apache Airflow 2.8</div>
+    <div class="layer-body" style="align-items:flex-start; flex-wrap:nowrap; overflow-x:auto;">
+
+      <!-- extract tasks -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="node l-orch" id="n-ext-minio"
+          data-title="extract_to_minio"
+          data-tip="Airflow task | MongoDB → MinIO JSON archive | Uploads dated JSON files to mandera-raw bucket"
+          data-tag="Task 1">
+          <div class="node-name">extract_to_minio</div>
+          <div class="node-detail">MongoDB → MinIO</div>
+        </div>
+        <div class="node l-orch" id="n-ext-pg"
+          data-title="extract_to_postgres"
+          data-tip="Airflow task | MongoDB → PostgreSQL raw.* | psycopg2 bulk insert, no transform"
+          data-tag="Task 2">
+          <div class="node-name">extract_to_postgres</div>
+          <div class="node-detail">MongoDB → raw.*</div>
+        </div>
+      </div>
+
+      <!-- fork arrow -->
+      <div style="display:flex;flex-direction:column;justify-content:center;gap:38px;align-self:stretch;padding-top:4px;">
+        <div style="color:#484F58;font-size:18px;line-height:1;">→</div>
+        <div style="color:#484F58;font-size:18px;line-height:1;">→</div>
+      </div>
+
+      <!-- parallel transform -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="node l-orch" id="n-tx-cust"
+          data-title="transform_customers"
+          data-tip="Airflow task | Parallel | raw.customers → staging.customers | Data quality checks + FK enforcement"
+          data-tag="Parallel ↕">
+          <div class="node-name">transform_customers</div>
+          <div class="node-detail">raw → staging (parallel)</div>
+        </div>
+        <div class="node l-orch" id="n-tx-prod"
+          data-title="transform_products"
+          data-tip="Airflow task | Parallel | raw.products → staging.products | Runs alongside transform_customers"
+          data-tag="Parallel ↕">
+          <div class="node-name">transform_products</div>
+          <div class="node-detail">raw → staging (parallel)</div>
+        </div>
+      </div>
+
+      <!-- join arrow -->
+      <div style="display:flex;flex-direction:column;justify-content:center;align-self:stretch;padding-top:4px;">
+        <div style="color:#484F58;font-size:22px;">⇒</div>
+      </div>
+
+      <!-- transform orders -->
+      <div class="node l-orch" id="n-tx-orders"
+        data-title="transform_orders"
+        data-tip="Airflow task | Sequential after customers &amp; products | raw.orders → staging.orders | FK dependency on staging.customers + staging.products"
+        data-tag="Sequential (FK dep)">
+        <div class="node-name">transform_orders</div>
+        <div class="node-detail">after customers &amp; products<br>(FK dependency)</div>
+      </div>
+
+      <div style="color:#484F58;font-size:18px;align-self:center;">→</div>
+
+      <!-- truncate raw -->
+      <div class="node l-orch" id="n-truncate"
+        data-title="truncate_raw"
+        data-tip="Airflow task | Final step | Clears raw.* tables after successful staging load | Raw data is durably preserved in MinIO"
+        data-tag="Final task">
+        <div class="node-name">truncate_raw</div>
+        <div class="node-detail">clears raw.* tables<br>data safe in MinIO</div>
+      </div>
+
+    </div>
+
+    <!-- Airflow meta pill -->
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+      <div class="node l-orch" id="n-airflow-meta"
+        style="min-width:auto;padding:10px 16px;"
+        data-title="Apache Airflow 2.8"
+        data-tip="Orchestration | LocalExecutor | @daily schedule | max_active_runs: 1 | retries: 2 | webserver + scheduler containers"
+        data-tag="LocalExecutor">
+        <div class="node-name" style="font-size:12px;">Airflow 2.8 · LocalExecutor · @daily · retries: 2</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="layer-divider">
+
+  <!-- LAYER 5 — TRANSFORMATION -->
+  <div class="layer">
+    <div class="layer-label">Layer 5 — Transformation</div>
+    <div class="layer-body">
+      <div class="node l-trans" id="n-txscripts"
+        data-title="Python Transform Scripts"
+        data-tip="Entity-level transforms | Parallel: customers &amp; products | Sequential: orders (FK dependency) | transform_customers.py · transform_products.py · transform_orders.py · db_utils.py"
+        data-tag="mandera_pipeline/transform/">
+        <div class="node-name">Python Transform Scripts</div>
+        <div class="node-detail">transform_customers.py<br>transform_products.py<br>transform_orders.py<br>db_utils.py</div>
+      </div>
+      <div class="arrow-label">·</div>
+      <div class="node l-trans" id="n-pyspark"
+        data-title="PySpark Notebooks"
+        data-tip="Distributed transform prototyping | orders_transform_pyspark.ipynb | JupyterLab with PySpark kernel"
+        data-tag="Distributed prototyping">
+        <div class="node-name">PySpark Notebooks</div>
+        <div class="node-detail">orders_transform_pyspark<br>Distributed prototyping</div>
+      </div>
+      <div class="arrow-label">·</div>
+      <div class="node l-trans" id="n-jupyter"
+        data-title="JupyterLab"
+        data-tip="Exploratory notebooks | 01_raw_exploration | customers_transform | products_transform | orders_transform_pyspark | load_staging"
+        data-tag="Port 8888">
+        <div class="node-name">JupyterLab</div>
+        <div class="node-detail">01_raw_exploration<br>customers/products/orders<br>load_staging</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="layer-divider">
+
+  <!-- LAYER 6 — SERVING -->
+  <div class="layer">
+    <div class="layer-label">Layer 6 — Serving</div>
+    <div class="layer-body">
+      <div class="node l-serve" id="n-pgstaging"
+        data-title="PostgreSQL 15 — staging schema"
+        data-tip="Clean, analytics-ready data | staging schema | staging.customers · staging.orders · staging.products | FK constraints enforced | Ready for BI / data warehouse"
+        data-tag="BI-ready">
+        <div class="node-name">PostgreSQL 15</div>
+        <div class="node-detail">staging.customers<br>staging.orders<br>staging.products<br><span style="color:#00C853;font-size:10px;font-weight:700;">BI / analytics ready</span></div>
+      </div>
+      <div class="arrow-label">·</div>
+      <div class="node l-serve" id="n-mongo-atlas"
+        data-title="MongoDB Atlas"
+        data-tip="Document store | mandera_db | customers / orders / products collections | Logging + change tracking | Source of record for pipeline"
+        data-tag="mandera_db">
+        <div class="node-name">MongoDB Atlas</div>
+        <div class="node-detail">mandera_db<br>Document store<br>Logging + change tracking</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="layer-divider">
+
+  <!-- LAYER 7 — INFRASTRUCTURE -->
+  <div class="layer">
+    <div class="layer-label">Layer 7 — Infrastructure · Docker Compose</div>
+    <div class="layer-body" style="flex-wrap:wrap;">
+      <div class="pill l-infra" id="n-dc-postgres"
+        data-title="postgres"
+        data-tip="PostgreSQL 15 container | Hosts raw + staging schemas + airflow_db | Port 5432"
+        data-tag="Port 5432">
+        <div class="pill-dot"></div>postgres
+      </div>
+      <div class="pill l-infra" id="n-dc-minio"
+        data-title="minio"
+        data-tip="MinIO object storage container | mandera-raw bucket | API Port 9000 · Console Port 9001"
+        data-tag="9000/9001">
+        <div class="pill-dot"></div>minio
+      </div>
+      <div class="pill l-infra" id="n-dc-pgadmin"
+        data-title="pgadmin"
+        data-tip="pgAdmin 4 web UI | Browse PostgreSQL schemas | Port 5050"
+        data-tag="Port 5050">
+        <div class="pill-dot"></div>pgadmin
+      </div>
+      <div class="pill l-infra" id="n-dc-jupyter"
+        data-title="jupyter"
+        data-tip="JupyterLab with PySpark kernel | Exploration notebooks | Port 8888"
+        data-tag="Port 8888">
+        <div class="pill-dot"></div>jupyter
+      </div>
+      <div class="pill l-infra" id="n-dc-airflow-init"
+        data-title="airflow-init"
+        data-tip="One-shot init container | Creates airflow user + DB | Runs before webserver/scheduler"
+        data-tag="One-shot">
+        <div class="pill-dot"></div>airflow-init
+      </div>
+      <div class="pill l-infra" id="n-dc-airflow-web"
+        data-title="airflow-webserver"
+        data-tip="Airflow web UI | DAG monitoring and triggering | Port 8080"
+        data-tag="Port 8080">
+        <div class="pill-dot"></div>airflow-web
+      </div>
+      <div class="pill l-infra" id="n-dc-airflow-sched"
+        data-title="airflow-scheduler"
+        data-tip="Airflow scheduler | LocalExecutor | Polls and triggers DAG tasks"
+        data-tag="LocalExecutor">
+        <div class="pill-dot"></div>airflow-sched
+      </div>
+      <div class="pill l-infra" id="n-dc-dbinit"
+        data-title="db-init"
+        data-tip="Database init container | Runs init_db.sql | Creates raw + staging schemas on first boot"
+        data-tag="init_db.sql">
+        <div class="pill-dot"></div>db-init
+      </div>
+    </div>
+  </div>
+
+</div><!-- /canvas -->
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip">
+  <div class="tooltip-title" id="tt-title"></div>
+  <div class="tooltip-body" id="tt-body"></div>
+  <div class="tooltip-tag" id="tt-tag"></div>
+</div>
+
+<script>
+/* ── Tooltip logic ────────────────────────────────────── */
+const tooltip = document.getElementById('tooltip');
+const ttTitle = document.getElementById('tt-title');
+const ttBody  = document.getElementById('tt-body');
+const ttTag   = document.getElementById('tt-tag');
+
+function getAccentColor(el) {
+  const classes = [...el.classList];
+  const map = { 'l-cicd':'#2196F3','l-datagen':'#FFB300','l-raw':'#00C853',
+                 'l-orch':'#AA00FF','l-trans':'#FF6D00','l-serve':'#FF1744','l-infra':'#546E7A' };
+  for (const [k,v] of Object.entries(map)) { if (classes.includes(k)) return v; }
+  return '#58A6FF';
+}
+
+document.querySelectorAll('[data-tip]').forEach(el => {
+  el.addEventListener('mouseenter', e => {
+    const accent = getAccentColor(el);
+    tooltip.style.setProperty('--tt-accent', accent);
+    ttTitle.textContent = el.dataset.title || '';
+    ttBody.innerHTML    = (el.dataset.tip  || '').replace(/\|/g, '<br>');
+    ttTag.textContent   = el.dataset.tag   || '';
+    tooltip.classList.add('visible');
+    posTooltip(e);
+  });
+  el.addEventListener('mousemove', posTooltip);
+  el.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+});
+
+function posTooltip(e) {
+  const tw = 300, th = 120, margin = 14;
+  let x = e.clientX + margin;
+  let y = e.clientY + margin;
+  if (x + tw > window.innerWidth)  x = e.clientX - tw - margin;
+  if (y + th > window.innerHeight) y = e.clientY - th - margin;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top  = y + 'px';
+}
+
+/* ── Animated flowing dots ────────────────────────────── */
+const FLOWS = [
+  { from:'n-github',   to:'n-gha',        color:'#2196F3', dur:1600 },
+  { from:'n-gha',      to:'n-faker',      color:'#FFB300', dur:1800 },
+  { from:'n-faker',    to:'n-mongo',      color:'#FFB300', dur:1600 },
+  { from:'n-mongo',    to:'n-pgraw',      color:'#00C853', dur:1500 },
+  { from:'n-mongo',    to:'n-minio',      color:'#00C853', dur:1500 },
+  { from:'n-pgraw',    to:'n-ext-pg',     color:'#AA00FF', dur:1400 },
+  { from:'n-minio',    to:'n-ext-minio',  color:'#AA00FF', dur:1400 },
+  { from:'n-ext-minio','to':'n-tx-cust',  color:'#AA00FF', dur:1300 },
+  { from:'n-ext-pg',   to:'n-tx-prod',    color:'#AA00FF', dur:1300 },
+  { from:'n-tx-cust',  to:'n-tx-orders',  color:'#AA00FF', dur:1200 },
+  { from:'n-tx-prod',  to:'n-tx-orders',  color:'#AA00FF', dur:1200 },
+  { from:'n-tx-orders',to:'n-truncate',   color:'#AA00FF', dur:1100 },
+  { from:'n-truncate', to:'n-txscripts',  color:'#FF6D00', dur:1500 },
+  { from:'n-txscripts',to:'n-pgstaging',  color:'#FF1744', dur:1500 },
+  { from:'n-mongo',    to:'n-mongo-atlas',color:'#FF1744', dur:2000 },
+];
+
+const svg = document.getElementById('connSvg');
+const canvas = document.getElementById('canvas');
+
+function getCenter(id) {
+  const el = document.getElementById(id);
+  if (!el) return null;
+  const er = el.getBoundingClientRect();
+  const cr = canvas.getBoundingClientRect();
+  return {
+    x: er.left - cr.left + er.width  / 2,
+    y: er.top  - cr.top  + er.height / 2,
+    right:  er.right  - cr.left,
+    left:   er.left   - cr.left,
+    top:    er.top    - cr.top,
+    bottom: er.bottom - cr.top,
+  };
+}
+
+const dotAnimations = [];
+
+function buildConnectors() {
+  svg.innerHTML = '';
+  dotAnimations.length = 0;
+
+  FLOWS.forEach((f, i) => {
+    const A = getCenter(f.from);
+    const B = getCenter(f.to);
+    if (!A || !B) return;
+
+    const x1 = A.right, y1 = A.y;
+    const x2 = B.left,  y2 = B.y;
+    const cx1 = x1 + Math.abs(x2 - x1) * 0.45;
+    const cx2 = x2 - Math.abs(x2 - x1) * 0.45;
+
+    const pathEl = document.createElementNS('http://www.w3.org/2000/svg','path');
+    const d = `M${x1},${y1} C${cx1},${y1} ${cx2},${y2} ${x2},${y2}`;
+    pathEl.setAttribute('d', d);
+    pathEl.setAttribute('fill', 'none');
+    pathEl.setAttribute('stroke', '#2D333B');
+    pathEl.setAttribute('stroke-width', '1.5');
+    pathEl.setAttribute('stroke-dasharray', '5 4');
+    pathEl.setAttribute('marker-end', `url(#arr-${i})`);
+    svg.appendChild(pathEl);
+
+    // arrowhead marker
+    const defs = svg.querySelector('defs') || svg.insertBefore(
+      document.createElementNS('http://www.w3.org/2000/svg','defs'), svg.firstChild);
+    const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
+    marker.setAttribute('id', `arr-${i}`);
+    marker.setAttribute('markerWidth','6');
+    marker.setAttribute('markerHeight','6');
+    marker.setAttribute('refX','5');
+    marker.setAttribute('refY','2');
+    marker.setAttribute('orient','auto');
+    const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    poly.setAttribute('points','0 0, 6 2, 0 4');
+    poly.setAttribute('fill','#3D444D');
+    marker.appendChild(poly);
+    defs.appendChild(marker);
+
+    // flowing dot
+    const dotEl = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    dotEl.setAttribute('r', '3.5');
+    dotEl.setAttribute('fill', f.color);
+    dotEl.setAttribute('filter', `drop-shadow(0 0 4px ${f.color})`);
+    svg.appendChild(dotEl);
+
+    const pathLen = pathEl.getTotalLength();
+    let start = null;
+    const offset = (i / FLOWS.length) * f.dur;
+
+    dotAnimations.push({ pathEl, dotEl, pathLen, dur: f.dur, offset, color: f.color });
+  });
+}
+
+let animRunning = true;
+function animateAll(ts) {
+  if (!animRunning) return;
+  dotAnimations.forEach(a => {
+    const elapsed = (ts - (a.startTs || ts) + a.offset) % a.dur;
+    if (!a.startTs) a.startTs = ts;
+    const t = ((ts + a.offset) % a.dur) / a.dur;
+    try {
+      const pt = a.pathEl.getPointAtLength(t * a.pathLen);
+      a.dotEl.setAttribute('cx', pt.x);
+      a.dotEl.setAttribute('cy', pt.y);
+      a.dotEl.setAttribute('opacity', Math.sin(Math.PI * t) * 0.9 + 0.1);
+    } catch(e) {}
+  });
+  requestAnimationFrame(animateAll);
+}
+
+function init() {
+  buildConnectors();
+  requestAnimationFrame(animateAll);
+}
+
+window.addEventListener('load', init);
+window.addEventListener('resize', () => { buildConnectors(); });
+</script>
+</body>
+</html>
